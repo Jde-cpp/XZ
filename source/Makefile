@@ -7,7 +7,7 @@ DEBUG ?= 1
 CXXFLAGS_BASE = -c -g -pthread -fPIC -std=c++17 -Wall -DJDE_EXPORT_MARKETS -DBOOST_SYSTEM_NO_DEPRECATED -Wno-unknown-pragmas
 #-Wno-unknown-pragmas -Wno-ignored-attributes -Wno-int-in-bool-context
 
-BIN_DIR_BASE:=../../../../bin/
+BIN_DIR_BASE:=../../bin/
 OUT_DIR_BASE := .obj/
 LIBS = 
 #-lprotobuf
