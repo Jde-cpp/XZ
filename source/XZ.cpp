@@ -79,7 +79,7 @@ namespace Jde::IO::Zip
 				case LZMA_DATA_ERROR:
 					throw  "Compressed file is corrupt";
 				case LZMA_BUF_ERROR:
-					THROW( IOException("Compressed file is truncated or otherwise corrupt") );
+					THROW( IOException("Compressed file '{}' is truncated or otherwise corrupt", pathString) );
 				default:
 					throw "Unknown error, possibly a bug";
 				}
