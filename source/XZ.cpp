@@ -1,4 +1,3 @@
-#include "stdafx.h"
 #include "XZ.h"
 #include <lzma.h> //https://tukaani.org/xz/
 ///home/duffyj/code/libraries/7z/C/#include <lzma/Alloc.h>
