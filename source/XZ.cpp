@@ -93,6 +93,8 @@ namespace Jde::IO::Zip
 	//https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
 	void XZ::Write( const fs::path& path, const string& bytes, uint32_t preset )noexcept(false)
 	{
+		if( bytes.size()==0 )
+			THROW( IOException("sent in 0 bytes for '{}'", path.string()) );
 		Stopwatch sw( fmt::format("XZ::Write({},{:n}k)", path.string(), bytes.size()/(1 << 10)) );
 		std::ofstream os{path};
 		Write( os, bytes.data(), bytes.size(), preset );
