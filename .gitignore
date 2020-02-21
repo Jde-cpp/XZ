@@ -32,3 +32,4 @@
 *.app
 /source/.vs
 *.user
+source/.bin
