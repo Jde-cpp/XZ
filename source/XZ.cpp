@@ -97,7 +97,15 @@ namespace Jde::IO::Zip
 			THROW( IOException("sent in 0 bytes for '{}'", path.string()) );
 		Stopwatch sw( fmt::format("XZ::Write({},{:n}k)", path.string(), bytes.size()/(1 << 10)) );
 		std::ofstream os{path};
-		Write( os, bytes.data(), bytes.size(), preset );
+		try
+		{
+			Write( os, bytes.data(), bytes.size(), preset );
+		}
+		catch( IOException& e )
+		{
+			e.Path = path;
+			throw e;
+		}
 	}
 	void XZ::Write( const fs::path& path, const std::vector<char>& bytes, uint32_t preset )noexcept(false)
 	{
