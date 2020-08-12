@@ -32,7 +32,7 @@ namespace Jde::IO::Zip
 		if( fileSize==0 )
 			return unique_ptr<vector<char>>{};
 
-		vector<uint8_t> inbuf; inbuf.reserve(fileSize);
+		vector<uint8_t> inbuf( (size_t)fileSize );
 		auto pResult = std::make_unique<vector<char>>(fileSize);//
 		strm.next_in = nullptr;
 		strm.avail_in = 0;
@@ -126,7 +126,7 @@ namespace Jde::IO::Zip
 		InitEncoder( &strm, preset );
 
 		var outputSize = std::min( size, static_cast<uint>(1 << 30) );
-		shared_ptr<uint8_t[]> outbuf( new uint8_t[outputSize] );
+		unique_ptr<uint8_t[]> outbuf( new uint8_t[outputSize] );
 		strm.next_in = reinterpret_cast<const uint8_t*>( pBytes );
 		strm.avail_in = size;
 		const lzma_action action = LZMA_FINISH;
