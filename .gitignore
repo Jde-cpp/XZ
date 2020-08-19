@@ -33,3 +33,4 @@
 /source/.vs
 *.user
 source/.bin
+source/.vscode/settings.json

@@ -103,7 +103,7 @@ namespace Jde::IO::Zip
 		}
 		catch( IOException& e )
 		{
-			e.Path = path;
+			e.SetPath( path );
 			throw e;
 		}
 	}
