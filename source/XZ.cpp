@@ -1,5 +1,6 @@
 #include "XZ.h"
 #include <lzma.h> //https://tukaani.org/xz/
+//for windows:  lib /machine:i386 /def:sqlite3.def
 //https://stackoverflow.com/questions/23232864/how-to-use-lzma-sdk-in-c doesn't have right file header.
 //http://newosxbook.com/src.jl?tree=listings&file=02_decompress.c
 //https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
@@ -59,8 +60,6 @@ namespace Jde::IO::Zip
 			{
 				uint originalSize = 0;
 				originalSize = pResult->size();
-				//string txt( pResult->data(), pResult->data()+pResult->size() );
-				//FileUtilities::Save( "/home/duffyj/tmp.txt", txt );
 				pResult->resize( originalSize+fileSize, '\0' );
 				strm.next_out = reinterpret_cast<uint8_t*>( pResult->data() + originalSize );
 				strm.avail_out = pResult->size() - originalSize;
@@ -89,7 +88,6 @@ namespace Jde::IO::Zip
 		return pResult;
 	}
 
-	//bool compress();
 	//https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
 	void XZ::Write( const fs::path& path, const string& bytes, uint32_t preset )noexcept(false)
 	{
