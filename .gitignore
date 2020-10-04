@@ -36,3 +36,4 @@ source/.bin
 source/.vscode/settings.json
 source/.vscode/tasks.json
 *.i
+source/x64/*
