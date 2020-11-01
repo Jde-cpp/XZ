@@ -2,13 +2,13 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <PropertyGroup Label="Globals">
-    <IncludePath>$(REPO_DIR)/boostorg/boost_1_73_0;$(REPO_DIR)/spdlog/include;$(REPO_DIR)/xz-5.2.4-windows/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(REPO_DIR)/boostorg/boost_1_73_0/stage/lib;$(LibraryPath)</LibraryPath>
+    <IncludePath>$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)/xz-5.2.5-windows/include;$(IncludePath)</IncludePath>
+    <LibraryPath>$(REPO_DIR)/vcpkg/installed/x64-windows/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <LibraryPath>$(REPO_DIR)\xz-5.2.4\windows\vs2019\Debug\x64\liblzma_dll;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(REPO_DIR)\xz-5.2.5-windows\bin_x86-64;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <LibraryPath>$(REPO_DIR)\xz-5.2.4\windows\vs2019\ReleaseMT\x64\liblzma_dll;$(LibraryPath)</LibraryPath>
-  </PropertyGroup>  
+    <LibraryPath>$(REPO_DIR)\xz-5.2.5-windows\bin_x86-64;$(LibraryPath)</LibraryPath>
+  </PropertyGroup>
 </Project>
