@@ -29,7 +29,7 @@ namespace Jde::IO::Zip
 		lzma_action action = LZMA_RUN;
 
 		const size_t fileSize = fs::file_size( fs::canonical(path) );
-		Stopwatch sw( fmt::format("Read '{}' - '{:n}K' bytes", path.string(), fileSize/(1 << 10)) );
+		Stopwatch sw( fmt::format("Read '{}' - '{}K' bytes", path.string(), fileSize/(1 << 10)) );
 		if( fileSize==0 )
 			return unique_ptr<vector<char>>{};
 
@@ -53,7 +53,7 @@ namespace Jde::IO::Zip
 			if( ret == LZMA_STREAM_END )
 			{
 				pResult->resize( pResult->size()-strm.avail_out );
-				pResult->shrink_to_fit(); //3551
+				pResult->shrink_to_fit();
 				break;
 			}
 			else if( ret == LZMA_OK && strm.avail_out == 0 )
@@ -91,10 +91,12 @@ namespace Jde::IO::Zip
 	//https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
 	void XZ::Write( const fs::path& path, const string& bytes, uint32_t preset )noexcept(false)
 	{
+		var pathName = path.string();
+		const char* pszName = pathName.c_str();
 		if( bytes.size()==0 )
-			THROW( IOException("sent in 0 bytes for '{}'", path.string()) );
-		Stopwatch sw( fmt::format("XZ::Write({},{:n}k)", path.string(), bytes.size()/(1 << 10)) );
-		std::ofstream os{path};
+			THROW( IOException("sent in 0 bytes for '{}'", pszName) );
+		Stopwatch sw( fmt::format("XZ::Write( {}, {}k)", pszName, bytes.size()/(1 << 10)) );
+		std::ofstream os{ path, std::ios::binary };
 		try
 		{
 			Write( os, bytes.data(), bytes.size(), preset );
@@ -109,7 +111,7 @@ namespace Jde::IO::Zip
 	{
 		//DBG( "XZ::Write({},{:n},{}) Memory - {:n}M", path.string(), bytes.size(), preset, Diagnostics::GetMemorySize()/(1 << 20) );
 		Stopwatch sw( fmt::format("XZ::Write({},{:n}k,{})", path.string(), bytes.size()/(1 << 10), preset) );
-		std::ofstream os{path};
+		std::ofstream os{ path, std::ios::binary };
 		Write( os, bytes.data(), bytes.size(), preset );
 		//DBG( "XZ::Write({},{:n},{}) Memory - {:n}M", path.string(), bytes.size(), preset, Diagnostics::GetMemorySize()/(1 << 20) );
 	}

@@ -3,12 +3,11 @@
   <PropertyGroup />
   <PropertyGroup Label="Globals">
     <IncludePath>$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)/xz-5.2.5-windows/include;$(IncludePath)</IncludePath>
-    <LibraryPath>$(REPO_DIR)/vcpkg/installed/x64-windows/lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <LibraryPath>$(REPO_DIR)\xz-5.2.5-windows\bin_x86-64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(REPO_DIR)\xz-5.2.5-windows\bin_x86-64;$(REPO_DIR)\vcpkg\installed\x64-windows\debug\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <LibraryPath>$(REPO_DIR)\xz-5.2.5-windows\bin_x86-64;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(REPO_DIR)\xz-5.2.5-windows\bin_x86-64;$(REPO_DIR)\vcpkg\installed\x64-windows\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
 </Project>
