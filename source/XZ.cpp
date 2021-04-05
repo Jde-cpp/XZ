@@ -6,7 +6,6 @@
 //https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
 #include <fstream>
 #include "../../Framework/source/Stopwatch.h"
-#include "../../Framework/source/Diagnostics.h"
 #define var const auto
 
 namespace Jde::IO::Zip
