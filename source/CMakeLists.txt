@@ -3,7 +3,7 @@ project(Jde.XZ)
 set( CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/../../Framework/cmake )
 include(SetUpConfigurations)
 #######################################################
-add_library( Jde.XZ SHARED XZ.cpp )
+add_library( Jde.XZ SHARED XZ.cpp JdeZip.cpp )
 #######################################################
 target_precompile_headers(Jde.XZ
   PRIVATE

@@ -5,8 +5,14 @@
 //http://newosxbook.com/src.jl?tree=listings&file=02_decompress.c
 //https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
 #include <fstream>
+#include <boost/interprocess/streams/bufferstream.hpp>
+
+#include <boost/iostreams/device/array.hpp>
+#include <boost/iostreams/stream.hpp>
+#include <boost/archive/binary_oarchive.hpp>
+#include <boost/interprocess/streams/vectorstream.hpp>
+
 #include "../../Framework/source/Stopwatch.h"
-#include "../../Framework/source/Diagnostics.h"
 #define var const auto
 
 namespace Jde::IO::Zip
@@ -16,6 +22,7 @@ namespace Jde::IO::Zip
 
 	void InitEncoder( lzma_stream *strm, uint32_t preset )noexcept(false);
 	void InitDecoder( lzma_stream& strm )noexcept(false);
+
 	//from 02_decompress.c
 	unique_ptr<vector<char>> XZ::Read( const fs::path& path )noexcept(false)
 	{
@@ -24,29 +31,39 @@ namespace Jde::IO::Zip
 		if( file.fail() )
 			THROW( Exception("Could not open file '{}'", path.string()) );
 
-		lzma_stream strm = LZMA_STREAM_INIT;
-		InitDecoder(strm);
-		lzma_action action = LZMA_RUN;
-
 		const size_t fileSize = fs::file_size( fs::canonical(path) );
-		Stopwatch sw( fmt::format("Read '{}' - '{}K' bytes", path.string(), fileSize/(1 << 10)) );
+		Stopwatch sw( format("Read '{}' - '{}K' bytes", path.string(), fileSize/(1 << 10)) );
 		if( fileSize==0 )
 			return unique_ptr<vector<char>>{};
+		try
+		{
+			return Read( file, fileSize );
+		}
+		catch( IOException& e )
+		{
+			e.SetPath( path );
+			throw e;
+		}
+	}
 
-		vector<uint8_t> inbuf( (size_t)fileSize );
-		auto pResult = std::make_unique<vector<char>>(fileSize);//
+	unique_ptr<vector<char>> XZ::Read( std::istream& is, uint size )noexcept(false)
+	{
+		vector<uint8_t> inbuf( (size_t)size );
+		auto pResult = std::make_unique<vector<char>>( size );
+		lzma_stream strm = LZMA_STREAM_INIT;
+		InitDecoder(strm);
 		strm.next_in = nullptr;
 		strm.avail_in = 0;
 		strm.next_out = reinterpret_cast<uint8_t*>( pResult->data() );
 		strm.avail_out = pResult->capacity();
-		for(;;)
+		for(lzma_action action = LZMA_RUN;;)
 		{
-			if ( strm.avail_in==0 && !file.eof() )
+			if ( strm.avail_in==0 && !is.eof() )
 			{
 				strm.next_in = inbuf.data();
-				file.read( reinterpret_cast<char*>(inbuf.data()), inbuf.capacity() );
-				strm.avail_in = file.gcount();
-				if( file.eof() )
+				is.read( reinterpret_cast<char*>(inbuf.data()), inbuf.capacity() );
+				strm.avail_in = is.gcount();
+				if( is.eof() )
 					action = LZMA_FINISH;
 			}
 			lzma_ret ret = lzma_code( &strm, action );
@@ -60,7 +77,7 @@ namespace Jde::IO::Zip
 			{
 				uint originalSize = 0;
 				originalSize = pResult->size();
-				pResult->resize( originalSize+fileSize, '\0' );
+				pResult->resize( originalSize+size, '\0' );
 				strm.next_out = reinterpret_cast<uint8_t*>( pResult->data() + originalSize );
 				strm.avail_out = pResult->size() - originalSize;
 			}
@@ -70,17 +87,17 @@ namespace Jde::IO::Zip
 				switch (ret)
 				{
 				case LZMA_MEM_ERROR:
-					THROW( IOException("('{}')Memory allocation failed", pathString) );
+					THROW( IOException("('{}')Memory allocation failed") );
 				case LZMA_FORMAT_ERROR:
-					THROW( IOException("('{}')The input is not in the .xz format", pathString) );
+					THROW( IOException("('{}')The input is not in the .xz format") );
 				case LZMA_OPTIONS_ERROR:
-					 THROW( IOException("('{}')Unsupported compression options", pathString) );
+					 THROW( IOException("('{}')Unsupported compression options") );
 				case LZMA_DATA_ERROR:
-					 THROW( IOException("('{}')Compressed file is corrupt", pathString) );
+					 THROW( IOException("('{}')Compressed file is corrupt") );
 				case LZMA_BUF_ERROR:
-					THROW( IOException("('{}')Compressed file is truncated or otherwise corrupt", pathString) );
+					THROW( IOException("('{}')Compressed file is truncated or otherwise corrupt") );
 				default:
-					THROW( IOException("('{}')Unknown error, possibly a bug", pathString) );
+					THROW( IOException("('{}')Unknown error, possibly a bug") );
 				}
 			}
 		}
@@ -88,6 +105,17 @@ namespace Jde::IO::Zip
 		return pResult;
 	}
 
+	up<vector<char>> XZ::Compress( const string& bytes, uint32_t preset )noexcept(false)
+	{
+		auto pCompressed = make_unique<vector<char>>( bytes.size() );
+		//typedef boost::iostreams::basic_array_source<char> Device;
+		//boost::iostreams::stream_buffer<Device> buffer( pCompressed->data(), pCompressed->size() );
+		//boost::archive::binary_oarchive os( buffer );  //, boost::archive::no_header
+		boost::interprocess::bufferstream os{ pCompressed->data(), bytes.size() };
+		var count = XZ::Write( os, bytes.data(), bytes.size(), preset );
+		pCompressed->resize( count );
+		return pCompressed;
+	}
 	//https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
 	void XZ::Write( const fs::path& path, const string& bytes, uint32_t preset )noexcept(false)
 	{
@@ -116,7 +144,7 @@ namespace Jde::IO::Zip
 		//DBG( "XZ::Write({},{:n},{}) Memory - {:n}M", path.string(), bytes.size(), preset, Diagnostics::GetMemorySize()/(1 << 20) );
 	}
 
-	void XZ::Write( std::ostream& os, const char* pBytes, uint size, uint32_t preset, Stopwatch* pStopwatch )noexcept(false)
+	uint XZ::Write( std::ostream& os, const char* pBytes, uint size, uint32_t preset, Stopwatch* pStopwatch )noexcept(false)
 	{
 		//auto pPrefix = pStopwatch ? make_shared<Stopwatch>( pStopwatch, "Prefix", "" ) : sp<Stopwatch>{};
 		//auto pCalc = pStopwatch ? make_shared<Stopwatch>( pStopwatch, "Calc", "", false ) : sp<Stopwatch>{};
@@ -132,7 +160,7 @@ namespace Jde::IO::Zip
 		const lzma_action action = LZMA_FINISH;
 		strm.next_out = outbuf.get();
 		strm.avail_out = outputSize;
-		//if( pPrefix ) pPrefix->Finish();
+		uint totalWriteSize{0};
 
 		for(;;)
 		{
@@ -146,11 +174,8 @@ namespace Jde::IO::Zip
 				if( strm.avail_out == 0 || ret == LZMA_STREAM_END )
 				{
 					var writeSize = outputSize - strm.avail_out;
-					//if( pWrite ) pWrite->UnPause();
-					os.write( reinterpret_cast<char*>(outbuf.get()), writeSize );
-					//if( pWrite ) pWrite->Pause();
-					if( os.fail() )
-						THROW( IOException("Could not write stream '{}'", std::strerror(errno)) );
+					os.write( reinterpret_cast<char*>(outbuf.get()), writeSize ); THROW_IFX( os.fail(), IOException(errno, "write") );
+					totalWriteSize+=writeSize;
 					strm.next_out = outbuf.get();
 					strm.avail_out = outputSize;
 				}
@@ -169,6 +194,7 @@ namespace Jde::IO::Zip
 				break;
 		}
 		lzma_end( &strm );
+		return totalWriteSize;
 	}
 
 #pragma region Init
