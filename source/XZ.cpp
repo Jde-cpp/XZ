@@ -105,7 +105,7 @@ namespace Jde::IO::Zip
 		return pResult;
 	}
 
-	up<vector<char>> XZ::Compress( const string& bytes, uint32_t preset )noexcept(false)
+	up<vector<char>> XZ::Compress( str bytes, uint32_t preset )noexcept(false)
 	{
 		auto pCompressed = make_unique<vector<char>>( bytes.size() );
 		//typedef boost::iostreams::basic_array_source<char> Device;
@@ -117,7 +117,7 @@ namespace Jde::IO::Zip
 		return pCompressed;
 	}
 	//https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
-	void XZ::Write( const fs::path& path, const string& bytes, uint32_t preset )noexcept(false)
+	void XZ::Write( const fs::path& path, string&& bytes, uint32_t preset )noexcept(false)
 	{
 		var pathName = path.string();
 		const char* pszName = pathName.c_str();
