@@ -5,14 +5,16 @@
 //http://newosxbook.com/src.jl?tree=listings&file=02_decompress.c
 //https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
 #include <fstream>
-#include <boost/interprocess/streams/bufferstream.hpp>
-
-#include <boost/iostreams/device/array.hpp>
-#include <boost/iostreams/stream.hpp>
-#include <boost/archive/binary_oarchive.hpp>
-#include <boost/interprocess/streams/vectorstream.hpp>
+#ifndef _MSC_VER
+	#include <boost/interprocess/streams/bufferstream.hpp>
+	#include <boost/iostreams/device/array.hpp>
+	#include <boost/iostreams/stream.hpp>
+	#include <boost/archive/binary_oarchive.hpp>
+	#include <boost/interprocess/streams/vectorstream.hpp>
+#endif
 
 #include "../../Framework/source/Stopwatch.h"
+#include "../../Framework/source/Exception.h"
 #define var const auto
 
 namespace Jde::IO::Zip
@@ -27,9 +29,7 @@ namespace Jde::IO::Zip
 	unique_ptr<vector<char>> XZ::Read( const fs::path& path )noexcept(false)
 	{
 		auto pathString = path.string();
-		std::ifstream file( pathString, std::ios::binary );
-		if( file.fail() )
-			THROW( Exception("Could not open file '{}'", path.string()) );
+		std::ifstream file( pathString, std::ios::binary ); THROW_IF( file.fail(), "Could not open file '{}'", path.string() );
 
 		const size_t fileSize = fs::file_size( fs::canonical(path) );
 		Stopwatch sw( format("Read '{}' - '{}K' bytes", path.string(), fileSize/(1 << 10)) );
@@ -105,16 +105,20 @@ namespace Jde::IO::Zip
 		return pResult;
 	}
 
-	up<vector<char>> XZ::Compress( str bytes, uint32_t preset )noexcept(false)
+	auto XZ::Compress( str bytes, uint32_t preset )noexcept(false)->up<vector<char>>
 	{
+#ifdef _MSC_VER
+		std::stringstream os;
+		var count = XZ::Write( os, bytes.data(), bytes.size(), preset );
+		var str = os.str();
+		return make_unique<vector<char>>( str.begin(), str.end() );
+#else
 		auto pCompressed = make_unique<vector<char>>( bytes.size() );
-		//typedef boost::iostreams::basic_array_source<char> Device;
-		//boost::iostreams::stream_buffer<Device> buffer( pCompressed->data(), pCompressed->size() );
-		//boost::archive::binary_oarchive os( buffer );  //, boost::archive::no_header
 		boost::interprocess::bufferstream os{ pCompressed->data(), bytes.size() };
 		var count = XZ::Write( os, bytes.data(), bytes.size(), preset );
 		pCompressed->resize( count );
 		return pCompressed;
+#endif
 	}
 	//https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
 	void XZ::Write( const fs::path& path, string&& bytes, uint32_t preset )noexcept(false)

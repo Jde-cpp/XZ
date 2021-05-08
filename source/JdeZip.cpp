@@ -5,6 +5,7 @@
 
 namespace Jde::IO::Zip::GZip
 {
+#ifndef _MSC_VERx
 	std::stringstream Read( std::istream& is )noexcept(false)
 	{
 		auto p = make_unique<vector<char>>();
@@ -16,4 +17,5 @@ namespace Jde::IO::Zip::GZip
 		boost::iostreams::copy( in, xyz );
 		return xyz;
 	}
+#endif
 }
