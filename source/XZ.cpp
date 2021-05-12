@@ -14,7 +14,7 @@
 #endif
 
 #include "../../Framework/source/Stopwatch.h"
-#include "../../Framework/source/Exception.h"
+#include <jde/Exception.h>
 #define var const auto
 
 namespace Jde::IO::Zip

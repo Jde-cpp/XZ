@@ -5,4 +5,4 @@
 	#include <spdlog/fmt/ostr.h>
 #endif
 
-#include "../../Framework/source/TypeDefs.h"
+#include <jde/TypeDefs.h>
