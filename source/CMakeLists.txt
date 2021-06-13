@@ -12,5 +12,5 @@ target_precompile_headers(Jde.XZ
 	<spdlog/spdlog.h>
 	<spdlog/sinks/basic_file_sink.h>
 	<spdlog/fmt/ostr.h>
-	"../../Framework/source/Exception.h"
+	<jde/Exception.h>
 )
