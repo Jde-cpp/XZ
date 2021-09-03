@@ -15,6 +15,7 @@
 
 #include "../../Framework/source/Stopwatch.h"
 #include <jde/Exception.h>
+#include <jde/io/File.h>
 #define var const auto
 
 namespace Jde::IO::Zip
@@ -26,13 +27,31 @@ namespace Jde::IO::Zip
 	void InitDecoder( lzma_stream& strm )noexcept(false);
 
 	//from 02_decompress.c
+	α XZ::CoRead( path path )noexcept(false)->FunctionAwaitable//vector<char>;
+	{
+		return FunctionAwaitable( [path]( auto h )->Task2
+		{
+			TaskResult r = co_await IO::Read( path );
+			auto p = r.Get<vector<char>>();//TODO deal with exception.
+			co_await CoRead( move(*p) );
+		});
+	}
+	α XZ::CoRead( vector<char>&& x )noexcept(false)->AsyncAwaitable
+	{
+		return AsyncAwaitable( [compressed=move(x)]()->sp<void>
+		{
+			auto y = XZ::Read( (uint8_t*)compressed.data(), compressed.size() );//TODO deal with exception.
+			return sp<vector<char>>{ y.release() };
+		});
+	}
+
 	unique_ptr<vector<char>> XZ::Read( const fs::path& path )noexcept(false)
 	{
 		auto pathString = path.string();
 		std::ifstream file( pathString, std::ios::binary ); THROW_IF( file.fail(), "Could not open file '{}'", path.string() );
 
 		const size_t fileSize = fs::file_size( fs::canonical(path) );
-		Stopwatch sw( format("Read '{}' - '{}K' bytes", path.string(), fileSize/(1 << 10)) );
+		//Stopwatch sw( format("Read '{}' - '{}K' bytes", path.string(), fileSize/(1 << 10)) );
 		if( fileSize==0 )
 			return unique_ptr<vector<char>>{};
 		try
@@ -45,28 +64,20 @@ namespace Jde::IO::Zip
 			throw e;
 		}
 	}
-
-	unique_ptr<vector<char>> XZ::Read( std::istream& is, uint size )noexcept(false)
+	α XZ::Read( uint8_t* pInput, uint size )noexcept(false)->up<vector<char>>
 	{
-		vector<uint8_t> inbuf( (size_t)size );
 		auto pResult = std::make_unique<vector<char>>( size );
 		lzma_stream strm = LZMA_STREAM_INIT;
-		InitDecoder(strm);
-		strm.next_in = nullptr;
-		strm.avail_in = 0;
+		InitDecoder( strm );
+		strm.next_in = pInput;
+		strm.avail_in = size;
 		strm.next_out = reinterpret_cast<uint8_t*>( pResult->data() );
 		strm.avail_out = pResult->capacity();
-		for(lzma_action action = LZMA_RUN;;)
+		for( lzma_action action = LZMA_RUN;; )
 		{
-			if ( strm.avail_in==0 && !is.eof() )
-			{
-				strm.next_in = inbuf.data();
-				is.read( reinterpret_cast<char*>(inbuf.data()), inbuf.capacity() );
-				strm.avail_in = is.gcount();
-				if( is.eof() )
-					action = LZMA_FINISH;
-			}
-			lzma_ret ret = lzma_code( &strm, action );
+			if ( strm.avail_in==0 )
+				action = LZMA_FINISH;
+			const lzma_ret ret = lzma_code( &strm, action );
 			if( ret == LZMA_STREAM_END )
 			{
 				pResult->resize( pResult->size()-strm.avail_out );
@@ -75,34 +86,39 @@ namespace Jde::IO::Zip
 			}
 			else if( ret == LZMA_OK && strm.avail_out == 0 )
 			{
-				uint originalSize = 0;
-				originalSize = pResult->size();
+				uint originalSize = pResult->size();
 				pResult->resize( originalSize+size, '\0' );
 				strm.next_out = reinterpret_cast<uint8_t*>( pResult->data() + originalSize );
 				strm.avail_out = pResult->size() - originalSize;
 			}
 			else if( ret != LZMA_OK )
 			{
-				lzma_end(&strm);
+				lzma_end( &strm );
 				switch (ret)
 				{
 				case LZMA_MEM_ERROR:
-					THROW( IOException("('{}')Memory allocation failed") );
+					THROW( "('{}')Memory allocation failed" );
 				case LZMA_FORMAT_ERROR:
-					THROW( IOException("('{}')The input is not in the .xz format") );
+					THROW( "('{}')The input is not in the .xz format" );
 				case LZMA_OPTIONS_ERROR:
-					 THROW( IOException("('{}')Unsupported compression options") );
+					THROW( "('{}')Unsupported compression options" );
 				case LZMA_DATA_ERROR:
-					 THROW( IOException("('{}')Compressed file is corrupt") );
+					THROW( "('{}')Compressed file is corrupt" );
 				case LZMA_BUF_ERROR:
-					THROW( IOException("('{}')Compressed file is truncated or otherwise corrupt") );
+					THROW( "('{}')Compressed file is truncated or otherwise corrupt" );
 				default:
-					THROW( IOException("('{}')Unknown error, possibly a bug") );
+					THROW( "('{}')Unknown error, possibly a bug" );
 				}
 			}
 		}
-		lzma_end(&strm);
+		lzma_end( &strm );
 		return pResult;
+	}
+	α XZ::Read( std::istream& is, uint size )noexcept(false)->up<vector<char>>
+	{
+		std::unique_ptr<uint8_t[]> p{ new uint8_t[size] };
+		is.read( (char*)p.get(), size );
+		return Read( p.get(), size );
 	}
 
 	auto XZ::Compress( str bytes, uint32_t preset )noexcept(false)->up<vector<char>>
@@ -142,7 +158,7 @@ namespace Jde::IO::Zip
 	void XZ::Write( const fs::path& path, const std::vector<char>& bytes, uint32_t preset )noexcept(false)
 	{
 		//DBG( "XZ::Write({},{:n},{}) Memory - {:n}M", path.string(), bytes.size(), preset, Diagnostics::GetMemorySize()/(1 << 20) );
-		Stopwatch sw( fmt::format("XZ::Write({},{:n}k,{})", path.string(), bytes.size()/(1 << 10), preset) );
+		//Stopwatch sw( fmt::format("XZ::Write({},{}k,{})"sv, path.string(), bytes.size()/(1 << 10), preset) );
 		std::ofstream os{ path, std::ios::binary };
 		Write( os, bytes.data(), bytes.size(), preset );
 		//DBG( "XZ::Write({},{:n},{}) Memory - {:n}M", path.string(), bytes.size(), preset, Diagnostics::GetMemorySize()/(1 << 20) );
@@ -185,13 +201,13 @@ namespace Jde::IO::Zip
 				}
 				break;
 			case LZMA_MEM_ERROR:
-				THROW( Exception(fmt::format("Memory allocation failed '{}'", ret)) );
+				THROW( "Memory allocation failed '{}'", ret );
 				break;
 			case LZMA_DATA_ERROR:
-				THROW( Exception(fmt::format("File size limits exceeded '{}'", ret)) );
+				THROW( "File size limits exceeded '{}'", ret );
 				break;
 			default:
-				THROW( Exception(fmt::format("Unknown error, possibly a bug '{}'", ret)) );
+				THROW( "Unknown error, possibly a bug '{}'", ret );
 				break;
 			};
 			if( ret == LZMA_STREAM_END )
@@ -211,16 +227,16 @@ namespace Jde::IO::Zip
 		switch (ret)// Something went wrong. The possible errors are documented in lzma/container.h (src/liblzma/api/lzma/container.h in the source package or e.g. /usr/include/lzma/container.h depending on the install prefix).
 		{
 		case LZMA_MEM_ERROR:
-			THROW( Exception("Memory allocation failed") );
+			THROW( "Memory allocation failed" );
 			break;
 		case LZMA_OPTIONS_ERROR:
-			THROW( Exception("Specified preset is not supported") );
+			THROW( "Specified preset is not supported" );
 			break;
 		case LZMA_UNSUPPORTED_CHECK:
-			THROW( Exception("Specified integrity check is not supported") );
+			THROW( "Specified integrity check is not supported" );
 			break;
 		default:
-			THROW( Exception("Unknown error, possibly a bug") );
+			THROW( "Unknown error, possibly a bug" );
 			break;
 		}
 	}
@@ -232,11 +248,11 @@ namespace Jde::IO::Zip
 			switch (ret)
 			{
 			case LZMA_MEM_ERROR:
-				THROW( Exception("Memory allocation failed") );
+				THROW( "Memory allocation failed" );
 			case LZMA_OPTIONS_ERROR:
-				THROW( Exception("Unsupported decompressor flags") );
+				THROW( "Unsupported decompressor flags" );
 			default:
-				THROW( Exception("Unknown error, possibly a bug") );
+				THROW( "Unknown error, possibly a bug" );
 			}
 		}
 	}
