@@ -1,4 +1,4 @@
-#include "XZ.h"
+﻿#include "XZ.h"
 #include <lzma.h> //https://tukaani.org/xz/
 //for windows:  lib /machine:i386 /def:sqlite3.def
 //https://stackoverflow.com/questions/23232864/how-to-use-lzma-sdk-in-c doesn't have right file header.
@@ -45,7 +45,7 @@ namespace Jde::IO::Zip
 		});
 	}
 
-	unique_ptr<vector<char>> XZ::Read( const fs::path& path )noexcept(false)
+	α XZ::Read( const fs::path& path )noexcept(false)->unique_ptr<vector<char>>
 	{
 		auto pathString = path.string();
 		std::ifstream file( pathString, std::ios::binary ); THROW_IF( file.fail(), "Could not open file '{}'", path.string() );
@@ -121,7 +121,7 @@ namespace Jde::IO::Zip
 		return Read( p.get(), size );
 	}
 
-	auto XZ::Compress( str bytes, uint32_t preset )noexcept(false)->up<vector<char>>
+	α XZ::Compress( str bytes, uint32_t preset )noexcept(false)->up<vector<char>>
 	{
 #ifdef _MSC_VER
 		std::stringstream os;
@@ -137,7 +137,7 @@ namespace Jde::IO::Zip
 #endif
 	}
 	//https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
-	void XZ::Write( const fs::path& path, string&& bytes, uint32_t preset )noexcept(false)
+	α  XZ::Write( const fs::path& path, string&& bytes, uint32_t preset )noexcept(false)->void
 	{
 		var pathName = path.string();
 		const char* pszName = pathName.c_str();
@@ -155,7 +155,7 @@ namespace Jde::IO::Zip
 			throw e;
 		}
 	}
-	void XZ::Write( const fs::path& path, const std::vector<char>& bytes, uint32_t preset )noexcept(false)
+	α XZ::Write( const fs::path& path, const std::vector<char>& bytes, uint32_t preset )noexcept(false)->void
 	{
 		//DBG( "XZ::Write({},{:n},{}) Memory - {:n}M", path.string(), bytes.size(), preset, Diagnostics::GetMemorySize()/(1 << 20) );
 		//Stopwatch sw( fmt::format("XZ::Write({},{}k,{})"sv, path.string(), bytes.size()/(1 << 10), preset) );
@@ -164,7 +164,7 @@ namespace Jde::IO::Zip
 		//DBG( "XZ::Write({},{:n},{}) Memory - {:n}M", path.string(), bytes.size(), preset, Diagnostics::GetMemorySize()/(1 << 20) );
 	}
 
-	uint XZ::Write( std::ostream& os, const char* pBytes, uint size, uint32_t preset, Stopwatch* pStopwatch )noexcept(false)
+	α XZ::Write( std::ostream& os, const char* pBytes, uint size, uint32_t preset, Stopwatch* pStopwatch )noexcept(false)->uint
 	{
 		//auto pPrefix = pStopwatch ? make_shared<Stopwatch>( pStopwatch, "Prefix", "" ) : sp<Stopwatch>{};
 		//auto pCalc = pStopwatch ? make_shared<Stopwatch>( pStopwatch, "Calc", "", false ) : sp<Stopwatch>{};
@@ -218,7 +218,7 @@ namespace Jde::IO::Zip
 	}
 
 #pragma region Init
-	void InitEncoder( lzma_stream *strm, uint32_t preset )noexcept(false)
+	α InitEncoder( lzma_stream *strm, uint32_t preset )noexcept(false)->void
 	{
 		lzma_ret ret = lzma_easy_encoder(strm, preset, LZMA_CHECK_CRC64);// Initialize the encoder using a preset. Set the integrity to check to CRC64, which is the default in the xz command line tool. If the .xz file needs to be decompressed with XZ Embedded, use LZMA_CHECK_CRC32 instead.
 		if( ret == LZMA_OK )
@@ -240,7 +240,7 @@ namespace Jde::IO::Zip
 			break;
 		}
 	}
-	void InitDecoder( lzma_stream& strm )noexcept(false)
+	α InitDecoder( lzma_stream& strm )noexcept(false)->void
 	{
 		lzma_ret ret = lzma_stream_decoder( &strm, UINT64_MAX, LZMA_CONCATENATED );
 		if( ret != LZMA_OK )

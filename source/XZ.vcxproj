@@ -63,8 +63,8 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;JDE_XZ_EXPORTS;NOMINMAX;BOOST_ALL_DYN_LINK;BOOST_ZLIB_BINARY=kernel32;_DEBUG;XZ_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <DisableSpecificWarnings>4251;4275</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableSpecificWarnings>4251;4275;4305</DisableSpecificWarnings>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <AdditionalOptions>/Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
@@ -92,8 +92,8 @@
       <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;JDE_XZ_EXPORTS;NOMINMAX;BOOST_ALL_DYN_LINK;BOOST_ZLIB_BINARY=kernel32;NDEBUG;XZ_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
-      <LanguageStandard>stdcpplatest</LanguageStandard>
-      <DisableSpecificWarnings>4251;4275</DisableSpecificWarnings>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <DisableSpecificWarnings>4251;4275;4305</DisableSpecificWarnings>
       <ForcedIncludeFiles>stdafx.h</ForcedIncludeFiles>
       <AdditionalOptions>/Zc:preprocessor /Zc:__cplusplus %(AdditionalOptions)</AdditionalOptions>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
