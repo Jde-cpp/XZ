@@ -29,11 +29,14 @@ namespace Jde::IO::Zip
 	//from 02_decompress.c
 	α XZ::CoRead( path path )noexcept(false)->FunctionAwaitable//vector<char>;
 	{
-		return FunctionAwaitable( [path]( auto h )->Task2
+		return FunctionAwaitable( [path]( HCoroutine h )->Task2
 		{
 			TaskResult r = co_await IO::Read( path );
-			auto p = r.Get<vector<char>>();//TODO deal with exception.
-			co_await CoRead( move(*p) );
+			auto pEncrypted = r.Get<vector<char>>();//TODO deal with exception.
+			auto pDecrypted = ( co_await CoRead(move(*pEncrypted)) ).Get<sp<vector<char>>>();
+			DBG( "CoRead - done" );
+			h.promise().get_return_object().SetResult( pDecrypted );
+			h.resume();
 		});
 	}
 	α XZ::CoRead( vector<char>&& x )noexcept(false)->AsyncAwaitable
@@ -141,8 +144,7 @@ namespace Jde::IO::Zip
 	{
 		var pathName = path.string();
 		const char* pszName = pathName.c_str();
-		if( bytes.size()==0 )
-			THROW( IOException("sent in 0 bytes for '{}'", pszName) );
+		THROW_IFX( bytes.size()==0, IOException(path, "sent in 0 bytes for '{}'") );
 		Stopwatch sw( fmt::format("XZ::Write( {}, {}k)", pszName, bytes.size()/(1 << 10)) );
 		std::ofstream os{ path, std::ios::binary };
 		try
@@ -194,7 +196,7 @@ namespace Jde::IO::Zip
 				if( strm.avail_out == 0 || ret == LZMA_STREAM_END )
 				{
 					var writeSize = outputSize - strm.avail_out;
-					os.write( reinterpret_cast<char*>(outbuf.get()), writeSize ); THROW_IFX( os.fail(), IOException(errno, "write") );
+					os.write( reinterpret_cast<char*>(outbuf.get()), writeSize ); THROW_IF( os.fail(), std::strerror(errno) );
 					totalWriteSize+=writeSize;
 					strm.next_out = outbuf.get();
 					strm.avail_out = outputSize;
@@ -224,7 +226,7 @@ namespace Jde::IO::Zip
 		if( ret == LZMA_OK )
 			return;
 
-		switch (ret)// Something went wrong. The possible errors are documented in lzma/container.h (src/liblzma/api/lzma/container.h in the source package or e.g. /usr/include/lzma/container.h depending on the install prefix).
+		switch (ret)//lzma/container.h 
 		{
 		case LZMA_MEM_ERROR:
 			THROW( "Memory allocation failed" );
@@ -256,7 +258,6 @@ namespace Jde::IO::Zip
 			}
 		}
 	}
-
 #pragma endregion
 }
 
