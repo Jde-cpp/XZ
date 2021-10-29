@@ -144,7 +144,7 @@ namespace Jde::IO::Zip
 	{
 		var pathName = path.string();
 		const char* pszName = pathName.c_str();
-		THROW_IFX( bytes.size()==0, IOException(path, "sent in 0 bytes for '{}'") );
+		THROW_IFX2( bytes.size()==0, IOException(path, "sent in 0 bytes") );
 		Stopwatch sw( fmt::format("XZ::Write( {}, {}k)", pszName, bytes.size()/(1 << 10)) );
 		std::ofstream os{ path, std::ios::binary };
 		try
@@ -226,7 +226,7 @@ namespace Jde::IO::Zip
 		if( ret == LZMA_OK )
 			return;
 
-		switch (ret)//lzma/container.h 
+		switch (ret)//lzma/container.h
 		{
 		case LZMA_MEM_ERROR:
 			THROW( "Memory allocation failed" );

@@ -36,7 +36,7 @@ namespace Jde::IO::Zip
 				if( !pBytes->size() )
 				{
 					fs::remove( path2 );
-					THROWX( IOException(path2, "deleted, has 0 bytes.") );
+					throw IOException( path2, "deleted, has 0 bytes." );
 				}
 				h.promise().get_return_object().SetResult( sp<T>(IO::Proto::Deserialize<T>(*pBytes).release()) );
 			}
