@@ -60,7 +60,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;JDE_XZ_EXPORTS;NOMINMAX;BOOST_ALL_DYN_LINK;BOOST_ZLIB_BINARY=kernel32;_DEBUG;XZ_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;JDE_XZ_EXPORTS;NOMINMAX;BOOST_ALL_DYN_LINK;BOOST_ZLIB_BINARY=kernel32;WIN32_LEAN_AND_MEAN;_DEBUG;XZ_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
@@ -89,7 +89,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;JDE_XZ_EXPORTS;NOMINMAX;BOOST_ALL_DYN_LINK;BOOST_ZLIB_BINARY=kernel32;NDEBUG;XZ_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_CRT_SECURE_NO_WARNINGS;JDE_XZ_EXPORTS;NOMINMAX;BOOST_ALL_DYN_LINK;BOOST_ZLIB_BINARY=kernel32;WIN32_LEAN_AND_MEAN;NDEBUG;XZ_EXPORTS;_WINDOWS;_USRDLL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <PrecompiledHeaderFile>stdafx.h</PrecompiledHeaderFile>
       <LanguageStandard>stdcpp20</LanguageStandard>
