@@ -34,7 +34,7 @@ namespace Jde::IO::Zip
 			TaskResult r = co_await IO::Read( path );
 			auto pEncrypted = r.Get<vector<char>>();//TODO deal with exception.
 			auto pDecrypted = ( co_await CoRead(move(*pEncrypted)) ).Get<sp<vector<char>>>();
-			DBG( "CoRead - done" );
+//			DBG( "CoRead - done" );
 			h.promise().get_return_object().SetResult( pDecrypted );
 			h.resume();
 		});

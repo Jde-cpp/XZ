@@ -40,9 +40,9 @@ namespace Jde::IO::Zip
 				}
 				h.promise().get_return_object().SetResult( sp<T>(IO::Proto::Deserialize<T>(*pBytes).release()) );
 			}
-			catch( const std::exception& e )
+			catch( IException& e )
 			{
-				h.promise().get_return_object().SetResult( std::make_exception_ptr(e) );
+				h.promise().get_return_object().SetResult( e.Clone() );
 			}
 			h.resume();
 		} };
