@@ -31,16 +31,23 @@ namespace Jde::IO::Zip
 	{
 		return FunctionAwaitable( [path]( HCoroutine h )->Task2
 		{
-			TaskResult r = co_await IO::Read( path );
-			auto pEncrypted = r.Get<vector<char>>();//TODO deal with exception.
-			auto pDecrypted = ( co_await CoRead(move(*pEncrypted)) ).Get<sp<vector<char>>>();
-//			DBG( "CoRead - done" );
-			h.promise().get_return_object().SetResult( pDecrypted );
+			try
+			{
+				auto pCompressed = ( co_await IO::Read(path) ).Get<vector<char>>();
+				THROW_IFX( pCompressed->empty(), IO_EX(path, "empty file.") );
+				auto p = ( co_await CoRead(move(*pCompressed)) ).Get<sp<vector<char>>>();
+				h.promise().get_return_object().SetResult( p );
+			}
+			catch( IException& e )
+			{
+				h.promise().get_return_object().SetResult( e.Clone() );
+			}
 			h.resume();
 		});
 	}
 	α XZ::CoRead( vector<char>&& x )noexcept(false)->AsyncAwaitable
 	{
+		THROW_IF( x.empty(), "no data" );
 		return AsyncAwaitable( [compressed=move(x)]()->sp<void>
 		{
 			auto y = XZ::Read( (uint8_t*)compressed.data(), compressed.size() );//TODO deal with exception.
@@ -97,21 +104,18 @@ namespace Jde::IO::Zip
 			else if( ret != LZMA_OK )
 			{
 				lzma_end( &strm );
-				switch (ret)
-				{
-				case LZMA_MEM_ERROR:
-					THROW( "('{}')Memory allocation failed" );
-				case LZMA_FORMAT_ERROR:
-					THROW( "('{}')The input is not in the .xz format" );
-				case LZMA_OPTIONS_ERROR:
-					THROW( "('{}')Unsupported compression options" );
-				case LZMA_DATA_ERROR:
-					THROW( "('{}')Compressed file is corrupt" );
-				case LZMA_BUF_ERROR:
-					THROW( "('{}')Compressed file is truncated or otherwise corrupt" );
-				default:
-					THROW( "('{}')Unknown error, possibly a bug" );
-				}
+				if( ret==LZMA_MEM_ERROR )
+					THROW( "{} - Memory allocation failed", ret );
+				else if( ret==LZMA_FORMAT_ERROR )
+					THROW( "{} - The input is not in the .xz format", ret );
+				else if( ret==LZMA_OPTIONS_ERROR )
+					THROW( "{} - Unsupported compression options", ret );
+				else if( ret==LZMA_DATA_ERROR )
+					THROW( "{} - Compressed file is corrupt", ret );
+				else if( ret==LZMA_BUF_ERROR )
+					THROW( "{} - Compressed file is truncated or otherwise corrupt", ret );
+				else
+					THROW( "{} - Unknown error, possibly a bug", ret );
 			}
 		}
 		lzma_end( &strm );
@@ -187,33 +191,23 @@ namespace Jde::IO::Zip
 		for(;;)
 		{
 			//if( pCalc ) pCalc->UnPause();
-			const lzma_ret ret = lzma_code( &strm, action );
-			//if( pCalc ) pCalc->Pause();
-			switch( ret )
+			var ret = lzma_code( &strm, action );
+			if( (ret==LZMA_OK && !strm.avail_out) || ret == LZMA_STREAM_END )
 			{
-			case LZMA_STREAM_END:
-			case LZMA_OK:
-				if( strm.avail_out == 0 || ret == LZMA_STREAM_END )
-				{
-					var writeSize = outputSize - strm.avail_out;
-					os.write( reinterpret_cast<char*>(outbuf.get()), writeSize ); THROW_IF( os.fail(), std::strerror(errno) );
-					totalWriteSize+=writeSize;
-					strm.next_out = outbuf.get();
-					strm.avail_out = outputSize;
-				}
-				break;
-			case LZMA_MEM_ERROR:
-				THROW( "Memory allocation failed '{}'", ret );
-				break;
-			case LZMA_DATA_ERROR:
-				THROW( "File size limits exceeded '{}'", ret );
-				break;
-			default:
+				var writeSize = outputSize - strm.avail_out;
+				os.write( reinterpret_cast<char*>(outbuf.get()), writeSize ); THROW_IF( os.fail(), std::strerror(errno) );
+				totalWriteSize+=writeSize;
+				strm.next_out = outbuf.get();
+				strm.avail_out = outputSize;
+				if( ret == LZMA_STREAM_END )
+					break;
+			}
+			else if( ret!=LZMA_OK )
+			{
+				THROW_IF( ret==LZMA_MEM_ERROR, "Memory allocation failed '{}'", ret );
+				THROW_IF( ret==LZMA_DATA_ERROR, "File size limits exceeded '{}'", ret );
 				THROW( "Unknown error, possibly a bug '{}'", ret );
-				break;
-			};
-			if( ret == LZMA_STREAM_END )
-				break;
+			}
 		}
 		lzma_end( &strm );
 		return totalWriteSize;
@@ -222,40 +216,21 @@ namespace Jde::IO::Zip
 #pragma region Init
 	α InitEncoder( lzma_stream *strm, uint32_t preset )noexcept(false)->void
 	{
-		lzma_ret ret = lzma_easy_encoder(strm, preset, LZMA_CHECK_CRC64);// Initialize the encoder using a preset. Set the integrity to check to CRC64, which is the default in the xz command line tool. If the .xz file needs to be decompressed with XZ Embedded, use LZMA_CHECK_CRC32 instead.
-		if( ret == LZMA_OK )
-			return;
-
-		switch (ret)//lzma/container.h
+		if( var ret = lzma_easy_encoder(strm, preset, LZMA_CHECK_CRC64); ret!=LZMA_OK )// Initialize the encoder using a preset. Set the integrity to check to CRC64, which is the default in the xz command line tool. If the .xz file needs to be decompressed with XZ Embedded, use LZMA_CHECK_CRC32 instead.
 		{
-		case LZMA_MEM_ERROR:
-			THROW( "Memory allocation failed" );
-			break;
-		case LZMA_OPTIONS_ERROR:
-			THROW( "Specified preset is not supported" );
-			break;
-		case LZMA_UNSUPPORTED_CHECK:
-			THROW( "Specified integrity check is not supported" );
-			break;
-		default:
-			THROW( "Unknown error, possibly a bug" );
-			break;
+			THROW_IF( ret==LZMA_MEM_ERROR, "Memory allocation failed {}", ret );
+			THROW_IF( ret==LZMA_OPTIONS_ERROR, "Specified preset is not supported {}", ret );
+			THROW_IF( ret==LZMA_UNSUPPORTED_CHECK, "Specified integrity check is not supported {}", ret );
+			THROW( "Unknown error, possibly a bug {}", ret );
 		}
 	}
 	α InitDecoder( lzma_stream& strm )noexcept(false)->void
 	{
-		lzma_ret ret = lzma_stream_decoder( &strm, UINT64_MAX, LZMA_CONCATENATED );
-		if( ret != LZMA_OK )
+		if( var ret = lzma_stream_decoder(&strm, UINT64_MAX, LZMA_CONCATENATED); ret!=LZMA_OK )
 		{
-			switch (ret)
-			{
-			case LZMA_MEM_ERROR:
-				THROW( "Memory allocation failed" );
-			case LZMA_OPTIONS_ERROR:
-				THROW( "Unsupported decompressor flags" );
-			default:
-				THROW( "Unknown error, possibly a bug" );
-			}
+			THROW_IF( ret==LZMA_MEM_ERROR, "Memory allocation failed {}", ret );
+			THROW_IF( ret==LZMA_OPTIONS_ERROR, "Unsupported decompressor flags {}", ret );
+			THROW( "Unknown error, possibly a bug {}", ret );
 		}
 	}
 #pragma endregion
