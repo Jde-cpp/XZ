@@ -71,7 +71,7 @@ namespace Jde::IO::Zip
 		catch( IOException& e )
 		{
 			e.SetPath( path );
-			throw e;
+			throw move(e);
 		}
 	}
 	α XZ::Read( uint8_t* pInput, uint size )noexcept(false)->up<vector<char>>
@@ -158,7 +158,7 @@ namespace Jde::IO::Zip
 		catch( IOException& e )
 		{
 			e.SetPath( path );
-			throw e;
+			throw move(e);
 		}
 	}
 	α XZ::Write( const fs::path& path, const std::vector<char>& bytes, uint32_t preset )noexcept(false)->void
