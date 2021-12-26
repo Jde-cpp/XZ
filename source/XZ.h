@@ -15,8 +15,8 @@ namespace Jde::IO::Zip
 		🚪 Read( path path )noexcept(false)->up<vector<char>>;
 		🚪 Read( std::istream& is, uint size )noexcept(false)->up<vector<char>>;
 		α Read( uint8_t* pInput, uint size )noexcept(false)->up<vector<char>>;
-		🚪 CoRead( path path )noexcept(false)->FunctionAwaitable;//vector<char>;
-		🚪 CoRead( vector<char>&& compressed )noexcept(false)->AsyncAwaitable;//vector<char>
+		🚪 CoRead( fs::path path, bool cache=false )noexcept(false)->FunctionAwait;//vector<char>;
+		🚪 CoRead( vector<char>&& compressed )noexcept(false)->PoolAwait<vector<char>>;//vector<char>
 		ⓣ ReadProto( fs::path path )noexcept->AWrapper;//vector<char>;
 		🚪 Write( path path, const vector<char>& bytes, uint32_t preset=6 )noexcept(false)->void;//PRESET=0-9 and can optionally be  followed by `e' to indicate extreme preset
 		🚪 Write( path path, string&& data, uint32_t preset=6 )noexcept(false)->void;
@@ -27,12 +27,12 @@ namespace Jde::IO::Zip
 	}
 	ⓣ XZ::ReadProto( fs::path path )noexcept->AWrapper
 	{
-		return AWrapper{ [path2=move(path)]( HCoroutine h )->Task2
+		return AWrapper{ [path2=move(path)]( HCoroutine h )->Task
 		{
-			TaskResult t = co_await CoRead( path2 );
+			AwaitResult t = co_await CoRead( path2 );
 			try
 			{
-				var pBytes = t.Get<vector<char>>();
+				var pBytes = t.UP<vector<char>>();
 				if( !pBytes->size() )
 				{
 					fs::remove( path2 );
@@ -42,7 +42,7 @@ namespace Jde::IO::Zip
 			}
 			catch( IException& e )
 			{
-				h.promise().get_return_object().SetResult( e.Clone() );
+				h.promise().get_return_object().SetResult( e.Move() );
 			}
 			h.resume();
 		} };

@@ -27,35 +27,44 @@ namespace Jde::IO::Zip
 	void InitDecoder( lzma_stream& strm )noexcept(false);
 
 	//from 02_decompress.c
-	α XZ::CoRead( path path )noexcept(false)->FunctionAwaitable//vector<char>;
+	α XZ::CoRead( fs::path path_, bool cache )noexcept(false)->FunctionAwait//vector<char>;
 	{
-		return FunctionAwaitable( [path]( HCoroutine h )->Task2
+		return FunctionAwait( [path=move(path_), cache]( HCoroutine h )->Task
 		{
 			try
 			{
-				auto pCompressed = ( co_await IO::Read(path) ).Get<vector<char>>();
-				THROW_IFX( pCompressed->empty(), IO_EX(path, "empty file.") );
-				auto p = ( co_await CoRead(move(*pCompressed)) ).Get<sp<vector<char>>>();
-				h.promise().get_return_object().SetResult( p );
+				up<vector<char>> p;
+				if( cache )
+				{
+					auto pCompressed = ( co_await IO::Read(path, true, true) ).SP<vector<char>>(); THROW_IFX( pCompressed->empty(), IO_EX(path, "empty file.") );
+					p = ( co_await CoRead(cache ? *pCompressed : move(*pCompressed)) ).UP<vector<char>>();
+				}
+				else
+				{
+					auto pCompressed = ( co_await IO::Read(path, true, cache) ).SP<vector<char>>(); THROW_IFX( pCompressed->empty(), IO_EX(path, "empty file.") );
+					p = ( co_await CoRead(cache ? *pCompressed : move(*pCompressed)) ).UP<vector<char>>();
+				}
+
+				h.promise().get_return_object().SetResult<vector<char>>( move(p) );
 			}
 			catch( IException& e )
 			{
-				h.promise().get_return_object().SetResult( e.Clone() );
+				h.promise().get_return_object().SetResult( e.Move() );
 			}
 			h.resume();
 		});
 	}
-	α XZ::CoRead( vector<char>&& x )noexcept(false)->AsyncAwaitable
+	α XZ::CoRead( vector<char>&& x )noexcept(false)->PoolAwait<vector<char>>
 	{
 		THROW_IF( x.empty(), "no data" );
-		return AsyncAwaitable( [compressed=move(x)]()->sp<void>
+		return PoolAwait<vector<char>>( [compressed=move(x)]()->up<vector<char>>
 		{
 			auto y = XZ::Read( (uint8_t*)compressed.data(), compressed.size() );//TODO deal with exception.
-			return sp<vector<char>>{ y.release() };
+			return y;
 		});
 	}
 
-	α XZ::Read( const fs::path& path )noexcept(false)->unique_ptr<vector<char>>
+	α XZ::Read( path path )noexcept(false)->unique_ptr<vector<char>>
 	{
 		auto pathString = path.string();
 		std::ifstream file( pathString, std::ios::binary ); THROW_IF( file.fail(), "Could not open file '{}'", path.string() );
