@@ -54,10 +54,10 @@ namespace Jde::IO::Zip
 			h.resume();
 		});
 	}
-	α XZ::CoRead( vector<char>&& x )noexcept(false)->PoolAwait<vector<char>>
+	α XZ::CoRead( vector<char>&& x )noexcept(false)->TPoolAwait<vector<char>>
 	{
 		THROW_IF( x.empty(), "no data" );
-		return PoolAwait<vector<char>>( [compressed=move(x)]()->up<vector<char>>
+		return TPoolAwait<vector<char>>( [compressed=move(x)]()->up<vector<char>>
 		{
 			auto y = XZ::Read( (uint8_t*)compressed.data(), compressed.size() );//TODO deal with exception.
 			return y;
