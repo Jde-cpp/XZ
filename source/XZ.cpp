@@ -27,9 +27,9 @@ namespace Jde::IO::Zip
 	void InitDecoder( lzma_stream& strm )noexcept(false);
 
 	//from 02_decompress.c
-	α XZ::CoRead( fs::path path_, bool cache )noexcept(false)->FunctionAwait//vector<char>;
+	α XZ::CoRead( fs::path path_, bool cache )noexcept(false)->AsyncAwait//vector<char>;
 	{
-		return FunctionAwait( [path=move(path_), cache]( HCoroutine h )->Task
+		return AsyncAwait( [path=move(path_), cache]( HCoroutine h )->Task
 		{
 			try
 			{
