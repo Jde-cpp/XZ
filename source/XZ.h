@@ -25,24 +25,24 @@ namespace Jde::IO::Zip
 		Φ Compress( str bytes, uint32_t preset=6 )noexcept(false)->up<vector<char>>;
 	#undef Φ
 	}
-	ⓣ XZ::ReadProto( fs::path path )noexcept->AsyncAwait
+	ⓣ XZ::ReadProto( fs::path path_ )noexcept->AsyncAwait
 	{
-		return AsyncAwait{ [path2=move(path)]( HCoroutine h )->Task
+		return AsyncAwait{ [path=move(path_)]( HCoroutine h )->Task
 		{
-			AwaitResult t = co_await CoRead( path2 );
+			AwaitResult t = co_await CoRead( path );
 			try
 			{
 				var pBytes = t.UP<vector<char>>();
 				if( !pBytes->size() )
 				{
-					fs::remove( path2 );
-					throw IOException( path2, "deleted, has 0 bytes." );
+					fs::remove( path );
+					throw IOException( path, "deleted, has 0 bytes." );
 				}
-				h.promise().get_return_object().SetResult( sp<T>(IO::Proto::Deserialize<T>(*pBytes).release()) );
+				h.promise().get_return_object().SetResult( IO::Proto::Deserialize<T>(*pBytes) );
 			}
 			catch( IException& e )
 			{
-				h.promise().get_return_object().SetResult( e.Move() );
+				h.promise().get_return_object().SetResult( move(e) );
 			}
 			h.resume();
 		} };

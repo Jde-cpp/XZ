@@ -49,7 +49,7 @@ namespace Jde::IO::Zip
 			}
 			catch( IException& e )
 			{
-				h.promise().get_return_object().SetResult( e.Move() );
+				h.promise().get_return_object().SetResult( move(e) );
 			}
 			h.resume();
 		});
