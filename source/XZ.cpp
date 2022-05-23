@@ -36,12 +36,12 @@ namespace Jde::IO::Zip
 				up<vector<char>> p;
 				if( cache )
 				{
-					auto pCompressed = ( co_await IO::Read(path, true, true) ).SP<vector<char>>(); THROW_IFX( pCompressed->empty(), IO_EX(path, "empty file.") );
+					auto pCompressed = ( co_await IO::Read(path, true, true) ).SP<vector<char>>(); THROW_IFX( pCompressed->empty(), IO_EX(path, ELogLevel::Error, "empty file.") );
 					p = ( co_await CoRead(cache ? *pCompressed : move(*pCompressed)) ).UP<vector<char>>();
 				}
 				else
 				{
-					auto pCompressed = ( co_await IO::Read(path, true, cache) ).SP<vector<char>>(); THROW_IFX( pCompressed->empty(), IO_EX(path, "empty file.") );
+					auto pCompressed = ( co_await IO::Read(path, true, cache) ).SP<vector<char>>(); THROW_IFX( pCompressed->empty(), IO_EX(path, ELogLevel::Error, "empty file.") );
 					p = ( co_await CoRead(cache ? *pCompressed : move(*pCompressed)) ).UP<vector<char>>();
 				}
 
