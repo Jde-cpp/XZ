@@ -145,7 +145,7 @@ namespace Jde::IO::Zip
 		var str = os.str();
 		return make_unique<vector<char>>( str.begin(), str.end() );
 #else
-		auto pCompressed = make_unique<vector<char>>( bytes.size() );
+		auto pCompressed = mu<vector<char>>( bytes.size() );
 		boost::interprocess::bufferstream os{ pCompressed->data(), bytes.size() };
 		var count = XZ::Write( os, bytes.data(), bytes.size(), preset );
 		pCompressed->resize( count );
