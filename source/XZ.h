@@ -17,7 +17,7 @@ namespace Jde::IO::Zip
 		α Read( uint8_t* pInput, uint size )noexcept(false)->up<vector<char>>;
 		Φ CoRead( fs::path path, bool cache=false )noexcept(false)->AsyncAwait;//vector<char>;
 		Φ CoRead( vector<char>&& compressed )noexcept(false)->TPoolAwait<vector<char>>;//vector<char>
-		ⓣ ReadProto( fs::path path )noexcept->AsyncAwait;//vector<char>;
+		Ŧ ReadProto( fs::path path )noexcept->AsyncAwait;//vector<char>;
 		Φ Write( path path, const vector<char>& bytes, uint32_t preset=6 )noexcept(false)->void;//PRESET=0-9 and can optionally be  followed by `e' to indicate extreme preset
 		Φ Write( path path, string&& data, uint32_t preset=6 )noexcept(false)->void;
 		Φ Write( std::ostream& os, const char* pBytes, uint size, uint32_t preset=6, Stopwatch* pStopwatch=nullptr )noexcept(false)->uint;
@@ -25,7 +25,7 @@ namespace Jde::IO::Zip
 		Φ Compress( str bytes, uint32_t preset=6 )noexcept(false)->up<vector<char>>;
 	#undef Φ
 	}
-	ⓣ XZ::ReadProto( fs::path path_ )noexcept->AsyncAwait
+	Ŧ XZ::ReadProto( fs::path path_ )noexcept->AsyncAwait
 	{
 		return AsyncAwait{ [path=move(path_)]( HCoroutine h )->Task
 		{

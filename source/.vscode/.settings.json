@@ -1,6 +1,10 @@
 {
 	"window.title": "XZ",
 	"files.associations": {
-		"filesystem": "cpp"
+		"filesystem": "cpp",
+		"array": "cpp",
+		"string": "cpp",
+		"string_view": "cpp",
+		"vector": "cpp"
 	}
 }
