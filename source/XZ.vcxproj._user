@@ -2,12 +2,12 @@
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup />
   <PropertyGroup Label="Globals">
-    <IncludePath>$(BOOST_DIR);$(REPO_DIR)\protobuf\src;$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)\spdlog\include;$(REPO_DIR)/xz-5.2.5-windows/include;$(IncludePath)</IncludePath>
+    <IncludePath>$(BOOST_DIR);$(REPO_DIR)\protobuf\src;$(REPO_DIR)/vcpkg/installed/x64-windows/include;$(REPO_DIR)\spdlog\include;$(REPO_DIR)/xz-5.2.9-windows/include;$(IncludePath)</IncludePath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
-    <LibraryPath>$(REPO_DIR)\xz-5.2.5-windows\bin_x86-64;$(REPO_DIR)\vcpkg\installed\x64-windows\debug\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(REPO_DIR)\xz-5.2.9-windows\bin_x86-64;$(REPO_DIR)\vcpkg\installed\x64-windows\debug\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
-    <LibraryPath>$(REPO_DIR)\xz-5.2.5-windows\bin_x86-64;$(REPO_DIR)\vcpkg\installed\x64-windows\lib;$(LibraryPath)</LibraryPath>
+    <LibraryPath>$(REPO_DIR)\xz-5.2.9-windows\bin_x86-64;$(REPO_DIR)\vcpkg\installed\x64-windows\lib;$(LibraryPath)</LibraryPath>
   </PropertyGroup>
 </Project>
