@@ -45,11 +45,11 @@ namespace Jde::IO::Zip
 					p = ( co_await CoRead(cache ? *pCompressed : move(*pCompressed)) ).UP<vector<char>>();
 				}
 
-				h.promise().get_return_object().SetResult<vector<char>>( move(p) );
+				h.promise().SetResult<vector<char>>( move(p) );
 			}
 			catch( IException& e )
 			{
-				h.promise().get_return_object().SetResult( move(e) );
+				h.promise().SetResult( move(e) );
 			}
 			h.resume();
 		});
