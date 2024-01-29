@@ -23,11 +23,11 @@ namespace Jde::IO::Zip
 	using std::unique_ptr;
 	using std::vector;
 
-	void InitEncoder( lzma_stream *strm, uint32_t preset )noexcept(false);
-	void InitDecoder( lzma_stream& strm )noexcept(false);
+	void InitEncoder( lzma_stream *strm, uint32_t preset )ε;
+	void InitDecoder( lzma_stream& strm )ε;
 
 	//from 02_decompress.c
-	α XZ::CoRead( fs::path path_, bool cache )noexcept(false)->AsyncAwait//vector<char>;
+	α XZ::CoRead( fs::path path_, bool cache )ε->AsyncAwait//vector<char>;
 	{
 		return AsyncAwait( [path=move(path_), cache]( HCoroutine h )->Task
 		{
@@ -54,7 +54,7 @@ namespace Jde::IO::Zip
 			h.resume();
 		});
 	}
-	α XZ::CoRead( vector<char>&& x )noexcept(false)->TPoolAwait<vector<char>>
+	α XZ::CoRead( vector<char>&& x )ε->TPoolAwait<vector<char>>
 	{
 		THROW_IF( x.empty(), "no data" );
 		return TPoolAwait<vector<char>>( [compressed=move(x)]()->up<vector<char>>
@@ -64,7 +64,7 @@ namespace Jde::IO::Zip
 		});
 	}
 
-	α XZ::Read( path path )noexcept(false)->unique_ptr<vector<char>>
+	α XZ::Read( path path )ε->unique_ptr<vector<char>>
 	{
 		auto pathString = path.string();
 		std::ifstream file( pathString, std::ios::binary ); THROW_IF( file.fail(), "Could not open file '{}'", path.string() );
@@ -83,7 +83,7 @@ namespace Jde::IO::Zip
 			throw move(e);
 		}
 	}
-	α XZ::Read( uint8_t* pInput, uint size )noexcept(false)->up<vector<char>>
+	α XZ::Read( uint8_t* pInput, uint size )ε->up<vector<char>>
 	{
 		auto pResult = std::make_unique<vector<char>>( size );
 		lzma_stream strm = LZMA_STREAM_INIT;
@@ -130,14 +130,14 @@ namespace Jde::IO::Zip
 		lzma_end( &strm );
 		return pResult;
 	}
-	α XZ::Read( std::istream& is, uint size )noexcept(false)->up<vector<char>>
+	α XZ::Read( std::istream& is, uint size )ε->up<vector<char>>
 	{
 		std::unique_ptr<uint8_t[]> p{ new uint8_t[size] };
 		is.read( (char*)p.get(), size );
 		return Read( p.get(), size );
 	}
 
-	α XZ::Compress( str bytes, uint32_t preset )noexcept(false)->up<vector<char>>
+	α XZ::Compress( str bytes, uint32_t preset )ε->up<vector<char>>
 	{
 #ifdef _MSC_VER
 		std::stringstream os;
@@ -153,7 +153,7 @@ namespace Jde::IO::Zip
 #endif
 	}
 	//https://github.com/kobolabs/liblzma/blob/master/doc/examples/01_compress_easy.c
-	α  XZ::Write( const fs::path& path, string&& bytes, uint32_t preset )noexcept(false)->void
+	α  XZ::Write( const fs::path& path, string&& bytes, uint32_t preset )ε->void
 	{
 		var pathName = path.string();
 		const char* pszName = pathName.c_str();
@@ -170,7 +170,7 @@ namespace Jde::IO::Zip
 			throw move(e);
 		}
 	}
-	α XZ::Write( const fs::path& path, const std::vector<char>& bytes, uint32_t preset )noexcept(false)->void
+	α XZ::Write( const fs::path& path, const std::vector<char>& bytes, uint32_t preset )ε->void
 	{
 		//DBG( "XZ::Write({},{:n},{}) Memory - {:n}M", path.string(), bytes.size(), preset, Diagnostics::GetMemorySize()/(1 << 20) );
 		//Stopwatch sw( fmt::format("XZ::Write({},{}k,{})"sv, path.string(), bytes.size()/(1 << 10), preset) );
@@ -179,7 +179,7 @@ namespace Jde::IO::Zip
 		//DBG( "XZ::Write({},{:n},{}) Memory - {:n}M", path.string(), bytes.size(), preset, Diagnostics::GetMemorySize()/(1 << 20) );
 	}
 
-	α XZ::Write( std::ostream& os, const char* pBytes, uint size, uint32_t preset, Stopwatch* pStopwatch )noexcept(false)->uint
+	α XZ::Write( std::ostream& os, const char* pBytes, uint size, uint32_t preset, Stopwatch* pStopwatch )ε->uint
 	{
 		//auto pPrefix = pStopwatch ? make_shared<Stopwatch>( pStopwatch, "Prefix", "" ) : sp<Stopwatch>{};
 		//auto pCalc = pStopwatch ? make_shared<Stopwatch>( pStopwatch, "Calc", "", false ) : sp<Stopwatch>{};
@@ -223,7 +223,7 @@ namespace Jde::IO::Zip
 	}
 
 #pragma region Init
-	α InitEncoder( lzma_stream *strm, uint32_t preset )noexcept(false)->void
+	α InitEncoder( lzma_stream *strm, uint32_t preset )ε->void
 	{
 		if( var ret = lzma_easy_encoder(strm, preset, LZMA_CHECK_CRC64); ret!=LZMA_OK )// Initialize the encoder using a preset. Set the integrity to check to CRC64, which is the default in the xz command line tool. If the .xz file needs to be decompressed with XZ Embedded, use LZMA_CHECK_CRC32 instead.
 		{
@@ -233,7 +233,7 @@ namespace Jde::IO::Zip
 			THROW( "Unknown error, possibly a bug {}", ret );
 		}
 	}
-	α InitDecoder( lzma_stream& strm )noexcept(false)->void
+	α InitDecoder( lzma_stream& strm )ε->void
 	{
 		if( var ret = lzma_stream_decoder(&strm, UINT64_MAX, LZMA_CONCATENATED); ret!=LZMA_OK )
 		{

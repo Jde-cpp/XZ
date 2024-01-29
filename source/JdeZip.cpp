@@ -1,4 +1,4 @@
-#include "JdeZip.h"
+﻿#include "JdeZip.h"
 #include <jde/Exception.h>
 //#ifdef _MSC_VER
    #include <zlib.h>
@@ -11,7 +11,7 @@
 #define var const auto
 namespace Jde::IO::Zip::GZip
 {
-	std::stringstream Read( std::istream& is )noexcept(false)
+	std::stringstream Read( std::istream& is )ε
 	{
 //#ifdef _MSC_VER
       z_stream zs;

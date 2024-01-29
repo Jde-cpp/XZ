@@ -12,20 +12,20 @@ namespace Jde::IO::Zip
 	namespace XZ
 	{
 	#define Φ JDE_XZ α
-		Φ Read( path path )noexcept(false)->up<vector<char>>;
-		Φ Read( std::istream& is, uint size )noexcept(false)->up<vector<char>>;
-		α Read( uint8_t* pInput, uint size )noexcept(false)->up<vector<char>>;
-		Φ CoRead( fs::path path, bool cache=false )noexcept(false)->AsyncAwait;//vector<char>;
-		Φ CoRead( vector<char>&& compressed )noexcept(false)->TPoolAwait<vector<char>>;//vector<char>
-		Ŧ ReadProto( fs::path path )noexcept->AsyncAwait;//vector<char>;
-		Φ Write( path path, const vector<char>& bytes, uint32_t preset=6 )noexcept(false)->void;//PRESET=0-9 and can optionally be  followed by `e' to indicate extreme preset
-		Φ Write( path path, string&& data, uint32_t preset=6 )noexcept(false)->void;
-		Φ Write( std::ostream& os, const char* pBytes, uint size, uint32_t preset=6, Stopwatch* pStopwatch=nullptr )noexcept(false)->uint;
-		Ξ Write( std::ostream& os, string&& data, uint32_t preset=6 )noexcept(false)->uint{ return Write( os, data.data(), data.size(), preset ); }
-		Φ Compress( str bytes, uint32_t preset=6 )noexcept(false)->up<vector<char>>;
+		Φ Read( path path )ε->up<vector<char>>;
+		Φ Read( std::istream& is, uint size )ε->up<vector<char>>;
+		α Read( uint8_t* pInput, uint size )ε->up<vector<char>>;
+		Φ CoRead( fs::path path, bool cache=false )ε->AsyncAwait;//vector<char>;
+		Φ CoRead( vector<char>&& compressed )ε->TPoolAwait<vector<char>>;//vector<char>
+		Ŧ ReadProto( fs::path path )ι->AsyncAwait;//vector<char>;
+		Φ Write( path path, const vector<char>& bytes, uint32_t preset=6 )ε->void;//PRESET=0-9 and can optionally be  followed by `e' to indicate extreme preset
+		Φ Write( path path, string&& data, uint32_t preset=6 )ε->void;
+		Φ Write( std::ostream& os, const char* pBytes, uint size, uint32_t preset=6, Stopwatch* pStopwatch=nullptr )ε->uint;
+		Ξ Write( std::ostream& os, string&& data, uint32_t preset=6 )ε->uint{ return Write( os, data.data(), data.size(), preset ); }
+		Φ Compress( str bytes, uint32_t preset=6 )ε->up<vector<char>>;
 	#undef Φ
 	}
-	Ŧ XZ::ReadProto( fs::path path_ )noexcept->AsyncAwait
+	Ŧ XZ::ReadProto( fs::path path_ )ι->AsyncAwait
 	{
 		return AsyncAwait{ [path=move(path_)]( HCoroutine h )->Task
 		{
