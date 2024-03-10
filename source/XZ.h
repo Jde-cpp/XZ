@@ -12,39 +12,33 @@ namespace Jde::IO::Zip
 	namespace XZ
 	{
 	#define Φ JDE_XZ α
-		Φ Read( path path )ε->up<vector<char>>;
+		Φ Read( const fs::path& path )ε->up<vector<char>>;
 		Φ Read( std::istream& is, uint size )ε->up<vector<char>>;
 		α Read( uint8_t* pInput, uint size )ε->up<vector<char>>;
 		Φ CoRead( fs::path path, bool cache=false )ε->AsyncAwait;//vector<char>;
 		Φ CoRead( vector<char>&& compressed )ε->TPoolAwait<vector<char>>;//vector<char>
 		Ŧ ReadProto( fs::path path )ι->AsyncAwait;//vector<char>;
-		Φ Write( path path, const vector<char>& bytes, uint32_t preset=6 )ε->void;//PRESET=0-9 and can optionally be  followed by `e' to indicate extreme preset
-		Φ Write( path path, string&& data, uint32_t preset=6 )ε->void;
+		Φ Write( const fs::path& path, const vector<char>& bytes, uint32_t preset=6 )ε->void;//PRESET=0-9 and can optionally be  followed by `e' to indicate extreme preset
+		Φ Write( const fs::path& path, string&& data, uint32_t preset=6 )ε->void;
 		Φ Write( std::ostream& os, const char* pBytes, uint size, uint32_t preset=6, Stopwatch* pStopwatch=nullptr )ε->uint;
 		Ξ Write( std::ostream& os, string&& data, uint32_t preset=6 )ε->uint{ return Write( os, data.data(), data.size(), preset ); }
 		Φ Compress( str bytes, uint32_t preset=6 )ε->up<vector<char>>;
 	#undef Φ
 	}
-	Ŧ XZ::ReadProto( fs::path path_ )ι->AsyncAwait
-	{
-		return AsyncAwait{ [path=move(path_)]( HCoroutine h )->Task
-		{
+	Ŧ XZ::ReadProto( fs::path path_ )ι->AsyncAwait{
+		return AsyncAwait{ [path=move(path_)]( HCoroutine h )->Task {
 			AwaitResult t = co_await CoRead( path );
-			try
-			{
+			try{
 				var pBytes = t.UP<vector<char>>();
-				if( !pBytes->size() )
-				{
+				if( !pBytes->size() ){
 					fs::remove( path );
 					throw IOException( path, "deleted, has 0 bytes." );
 				}
-				h.promise().get_return_object().SetResult( IO::Proto::Deserialize<T>(*pBytes) );
+				Resume( IO::Proto::Deserialize<T>(*pBytes), move(h) );
 			}
-			catch( IException& e )
-			{
-				h.promise().get_return_object().SetResult( move(e) );
+			catch( IException& e ){
+				Resume( move(e), move(h) );
 			}
-			h.resume();
 		} };
 	}
 	#undef var

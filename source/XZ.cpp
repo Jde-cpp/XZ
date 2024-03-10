@@ -64,7 +64,7 @@ namespace Jde::IO::Zip
 		});
 	}
 
-	α XZ::Read( path path )ε->unique_ptr<vector<char>>
+	α XZ::Read( const fs::path& path )ε->unique_ptr<vector<char>>
 	{
 		auto pathString = path.string();
 		std::ifstream file( pathString, std::ios::binary ); THROW_IF( file.fail(), "Could not open file '{}'", path.string() );
@@ -158,7 +158,7 @@ namespace Jde::IO::Zip
 		var pathName = path.string();
 		const char* pszName = pathName.c_str();
 		THROW_IFX( bytes.size()==0, IOException(path, "sent in 0 bytes") );
-		Stopwatch sw( fmt::format("XZ::Write( {}, {}k)", pszName, bytes.size()/(1 << 10)) );
+		Stopwatch sw( format("XZ::Write( {}, {}k)", pszName, bytes.size()/(1 << 10)) );
 		std::ofstream os{ path, std::ios::binary };
 		try
 		{
