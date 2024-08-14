@@ -114,17 +114,17 @@ namespace Jde::IO::Zip
 			{
 				lzma_end( &strm );
 				if( ret==LZMA_MEM_ERROR )
-					THROW( "{} - Memory allocation failed", ret );
+					THROW( "{} - Memory allocation failed", (int)ret );
 				else if( ret==LZMA_FORMAT_ERROR )
-					THROW( "{} - The input is not in the .xz format", ret );
+					THROW( "{} - The input is not in the .xz format", (int)ret );
 				else if( ret==LZMA_OPTIONS_ERROR )
-					THROW( "{} - Unsupported compression options", ret );
+					THROW( "{} - Unsupported compression options", (int)ret );
 				else if( ret==LZMA_DATA_ERROR )
-					THROW( "{} - Compressed file is corrupt", ret );
+					THROW( "{} - Compressed file is corrupt", (int)ret );
 				else if( ret==LZMA_BUF_ERROR )
-					THROW( "{} - Compressed file is truncated or otherwise corrupt", ret );
+					THROW( "{} - Compressed file is truncated or otherwise corrupt", (int)ret );
 				else
-					THROW( "{} - Unknown error, possibly a bug", ret );
+					THROW( "{} - Unknown error, possibly a bug", (int)ret );
 			}
 		}
 		lzma_end( &strm );
@@ -204,7 +204,7 @@ namespace Jde::IO::Zip
 			if( (ret==LZMA_OK && !strm.avail_out) || ret == LZMA_STREAM_END )
 			{
 				var writeSize = outputSize - strm.avail_out;
-				os.write( reinterpret_cast<char*>(outbuf.get()), writeSize ); THROW_IF( os.fail(), std::strerror(errno) );
+				os.write( reinterpret_cast<char*>(outbuf.get()), writeSize ); THROW_IFX( os.fail(), Exception(SRCE_CUR, ELogLevel::Debug, errno, "{}", std::strerror(errno)) );
 				totalWriteSize+=writeSize;
 				strm.next_out = outbuf.get();
 				strm.avail_out = outputSize;
@@ -213,9 +213,9 @@ namespace Jde::IO::Zip
 			}
 			else if( ret!=LZMA_OK )
 			{
-				THROW_IF( ret==LZMA_MEM_ERROR, "Memory allocation failed '{}'", ret );
-				THROW_IF( ret==LZMA_DATA_ERROR, "File size limits exceeded '{}'", ret );
-				THROW( "Unknown error, possibly a bug '{}'", ret );
+				THROW_IF( ret==LZMA_MEM_ERROR, "Memory allocation failed '{}'", (int)ret );
+				THROW_IF( ret==LZMA_DATA_ERROR, "File size limits exceeded '{}'", (int)ret );
+				THROW( "Unknown error, possibly a bug '{}'", (int)ret );
 			}
 		}
 		lzma_end( &strm );
@@ -227,19 +227,19 @@ namespace Jde::IO::Zip
 	{
 		if( var ret = lzma_easy_encoder(strm, preset, LZMA_CHECK_CRC64); ret!=LZMA_OK )// Initialize the encoder using a preset. Set the integrity to check to CRC64, which is the default in the xz command line tool. If the .xz file needs to be decompressed with XZ Embedded, use LZMA_CHECK_CRC32 instead.
 		{
-			THROW_IF( ret==LZMA_MEM_ERROR, "Memory allocation failed {}", ret );
-			THROW_IF( ret==LZMA_OPTIONS_ERROR, "Specified preset is not supported {}", ret );
-			THROW_IF( ret==LZMA_UNSUPPORTED_CHECK, "Specified integrity check is not supported {}", ret );
-			THROW( "Unknown error, possibly a bug {}", ret );
+			THROW_IF( ret==LZMA_MEM_ERROR, "Memory allocation failed {}", (int)ret );
+			THROW_IF( ret==LZMA_OPTIONS_ERROR, "Specified preset is not supported {}", (int)ret );
+			THROW_IF( ret==LZMA_UNSUPPORTED_CHECK, "Specified integrity check is not supported {}", (int)ret );
+			THROW( "Unknown error, possibly a bug {}", (int)ret );
 		}
 	}
 	α InitDecoder( lzma_stream& strm )ε->void
 	{
 		if( var ret = lzma_stream_decoder(&strm, UINT64_MAX, LZMA_CONCATENATED); ret!=LZMA_OK )
 		{
-			THROW_IF( ret==LZMA_MEM_ERROR, "Memory allocation failed {}", ret );
-			THROW_IF( ret==LZMA_OPTIONS_ERROR, "Unsupported decompressor flags {}", ret );
-			THROW( "Unknown error, possibly a bug {}", ret );
+			THROW_IF( ret==LZMA_MEM_ERROR, "Memory allocation failed {}", (int)ret );
+			THROW_IF( ret==LZMA_OPTIONS_ERROR, "Unsupported decompressor flags {}", (int)ret );
+			THROW( "Unknown error, possibly a bug {}", (int)ret );
 		}
 	}
 #pragma endregion

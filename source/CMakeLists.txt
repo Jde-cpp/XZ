@@ -12,5 +12,6 @@ target_precompile_headers( ${CMAKE_PROJECT_NAME}
 	<boost/crc.hpp>
 	<boost/system/error_code.hpp>
 	<jde/TypeDefs.h>
+	<jde/log/Log.h>
 	<jde/Exception.h>
 )
